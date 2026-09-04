@@ -11,7 +11,7 @@
 :root {
   --ink:#1C1C1E; --ink-medium:#44403c; --ink-light:#78716c;
   --paper:#faf8f3; --paper-warm:#f5f0e6; --rule-light:#d6d3d1; --gray-light:#EAEAEA;
-  --teal:#47D1C4; --teal-dark:#1D6A60; --purple-dark:#82209D;
+  --purple-dark:#82209D;
   --green-dark:#297A36; --coral-dark:#882020;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -21,15 +21,10 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--gray-light);color:v
 .embed-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .embed-title h1{font-size:16px;font-weight:700;letter-spacing:-0.02em;margin-bottom:2px}
 .embed-title p{font-size:11px;color:var(--ink-light)}
-.charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
 .card{min-width:0;background:var(--paper);border:1px solid var(--rule-light);border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:12px}
 .card h2{font-size:13px;font-weight:700;margin-bottom:3px;line-height:1.25}
 .sub{font-size:11px;color:var(--ink-light);margin-bottom:8px}
 .headline{font-size:12px;font-weight:600;color:var(--ink-medium);margin-bottom:8px}
-.toggle{display:inline-flex;border:1px solid var(--rule-light);border-radius:9px;overflow:hidden;background:var(--paper);margin-bottom:8px}
-.toggle-btn{border:0;background:transparent;padding:6px 11px;font:inherit;font-size:11px;font-weight:600;color:var(--ink-medium);cursor:pointer}
-.toggle-btn + .toggle-btn{border-left:1px solid var(--rule-light)}
-.toggle-btn.active{background:rgba(71,209,196,0.18);color:var(--teal-dark)}
 .table-wrap{overflow:auto;border-radius:10px;border:1px solid var(--rule-light)}
 .heat{width:100%;border-collapse:separate;border-spacing:0;min-width:420px;font-size:12px}
 .heat th{padding:9px 8px;font-size:11px;font-weight:600;color:var(--ink-medium);background:#f3f1ed;text-align:center;border-bottom:1px solid var(--rule-light);white-space:nowrap}
@@ -62,7 +57,6 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--gray-light);color:v
 .att-hi{color:var(--green-dark);font-weight:600}
 .att-mid{color:var(--ink);font-weight:600}
 .att-lo{color:var(--coral-dark);font-weight:600}
-@media(max-width:900px){.charts{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -73,35 +67,17 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--gray-light);color:v
       <p>Click any cell to see the rep list below.</p>
     </div>
   </div>
-  <div class="charts">
-    <section class="card">
-      <h2>Count of BDRs per blended attainment band by period</h2>
-      <p class="sub">All (YTD) vs Q1 vs Q2</p>
-      <div class="headline" id="qoq-headline">—</div>
-      <div class="table-wrap">
-        <table class="heat" id="qoq-table">
-          <thead id="qoq-head"></thead>
-          <tbody id="qoq-body"></tbody>
-        </table>
-      </div>
-    </section>
-    <section class="card">
-      <h2>Blended Attainment Bands — Tenured vs Rookies</h2>
-      <p class="sub">Rookies = &lt;1 year tenure · Tenured = 1 year+</p>
-      <div class="toggle" id="tenure-period-toggle" role="group" aria-label="Tenure chart period">
-        <button type="button" class="toggle-btn" data-tenure-period="q1">Q1</button>
-        <button type="button" class="toggle-btn active" data-tenure-period="q2">Q2</button>
-        <button type="button" class="toggle-btn" data-tenure-period="ytd">YTD</button>
-      </div>
-      <div class="headline" id="tenure-headline">—</div>
-      <div class="table-wrap">
-        <table class="heat" id="tenure-table">
-          <thead id="tenure-head"></thead>
-          <tbody id="tenure-body"></tbody>
-        </table>
-      </div>
-    </section>
-  </div>
+  <section class="card">
+    <h2>Count of BDRs per blended attainment band by period</h2>
+    <p class="sub">All (YTD) vs Q1 vs Q2</p>
+    <div class="headline" id="qoq-headline">—</div>
+    <div class="table-wrap">
+      <table class="heat" id="qoq-table">
+        <thead id="qoq-head"></thead>
+        <tbody id="qoq-body"></tbody>
+      </table>
+    </div>
+  </section>
   <div class="detail" id="detail">
     <div class="detail-head">
       <div class="detail-title" id="detail-title"></div>
@@ -141,14 +117,8 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
     { id: 'b125_150', label: '125–150%', min: 1.25, max: 1.50, bg: '#B5DEB5' },
     { id: 'b150p', label: '150%+', min: 1.50, max: Infinity, bg: '#A5D6A5' }
   ];
-  const BAND_PERIODS = {
-    q1: { key: 'q1', label: 'Q1', asOf: '2026-04-30' },
-    q2: { key: 'q2', label: 'Q2', asOf: '2026-07-31' },
-    ytd: { key: 'ytd', label: 'YTD', asOf: '2026-07-31' }
-  };
 
-  let tenureBandPeriod = 'q2';
-  let selection = null; // { source:'qoq'|'tenure', groupId, bandId, asOf, title }
+  let selection = null; // { groupId, bandId, asOf, title }
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -174,10 +144,6 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
     let months = (asOf.getUTCFullYear() - hire.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - hire.getUTCMonth());
     if (asOf.getUTCDate() < hire.getUTCDate()) months -= 1;
     return Math.max(0, months);
-  }
-  function isRookie(hireIso, asOfIso) {
-    const m = tenureMonths(hireIso, asOfIso);
-    return m != null && m < 12;
   }
   function fmtTenureShort(months) {
     if (months == null) return '—';
@@ -259,21 +225,6 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
       { id: 'q2', label: 'Q2', color: '#FF9C57', reps: periodReps('q2'), asOf: '2026-07-31' }
     ];
   }
-  function tenureGroups(periodKey) {
-    const meta = BAND_PERIODS[periodKey] || BAND_PERIODS.q2;
-    const reps = periodReps(meta.key).filter(function(r) { return !!r.hire_date; });
-    const tenured = [];
-    const rookies = [];
-    reps.forEach(function(r) {
-      if (isRookie(r.hire_date, meta.asOf)) rookies.push(r);
-      else tenured.push(r);
-    });
-    return [
-      { id: 'all', label: 'All', color: '#8f82ff', reps: reps, asOf: meta.asOf },
-      { id: 'tenured', label: 'Tenured', color: '#47D1C4', reps: tenured, asOf: meta.asOf },
-      { id: 'rookies', label: 'Rookies', color: '#FF9C57', reps: rookies, asOf: meta.asOf }
-    ];
-  }
 
   function clearSelection() {
     selection = null;
@@ -283,7 +234,7 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
   }
   function repsForSelection() {
     if (!selection) return [];
-    const groups = selection.source === 'qoq' ? qoqGroups() : tenureGroups(tenureBandPeriod);
+    const groups = qoqGroups();
     const group = groups.find(function(g) { return g.id === selection.groupId; });
     if (!group) return [];
     if (selection.bandId === 'total') return group.reps.slice();
@@ -306,34 +257,31 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
       : '<tr><td colspan="7" style="color:var(--ink-light)">No reps in this band.</td></tr>';
     detail.classList.add('open');
   }
-  function selectCell(source, groupId, bandId, asOf, titlePrefix) {
-    if (selection && selection.source === source && selection.groupId === groupId && selection.bandId === bandId) {
+  function selectCell(groupId, bandId, asOf, titlePrefix) {
+    if (selection && selection.groupId === groupId && selection.bandId === bandId) {
       clearSelection();
       renderQoq();
-      renderTenure();
       return;
     }
     const band = attainBandById(bandId);
     const bandLab = bandId === 'total' ? 'Total' : (band ? band.label : bandId);
     selection = {
-      source: source,
       groupId: groupId,
       bandId: bandId,
       asOf: asOf,
       title: titlePrefix + ' · ' + bandLab
     };
     renderQoq();
-    renderTenure();
     renderDetail();
   }
 
-  function bindCells(tbody, source, groups) {
+  function bindCells(tbody, groups) {
     tbody.querySelectorAll('.cell.clickable').forEach(function(el) {
       function activate() {
         const groupId = el.getAttribute('data-group');
         const bandId = el.getAttribute('data-band');
         const group = groups.find(function(g) { return g.id === groupId; });
-        selectCell(source, groupId, bandId, group ? group.asOf : '2026-07-31', group ? group.label : groupId);
+        selectCell(groupId, bandId, group ? group.asOf : '2026-07-31', group ? group.label : groupId);
       }
       el.addEventListener('click', activate);
       el.addEventListener('keydown', function(ev) {
@@ -341,9 +289,16 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
       });
     });
   }
-  function renderHeat(headEl, bodyEl, groups, source, headlineEl, headlineText) {
+
+  function renderQoq() {
+    const groups = qoqGroups();
     const matrix = buildMatrix(groups);
-    if (headlineEl) headlineEl.textContent = headlineText;
+    const headlineEl = document.getElementById('qoq-headline');
+    const headEl = document.getElementById('qoq-head');
+    const bodyEl = document.getElementById('qoq-body');
+    if (headlineEl) {
+      headlineEl.textContent = 'YTD ' + groups[0].reps.length + ' BDRs · Q1 ' + groups[1].reps.length + ' · Q2 ' + groups[2].reps.length;
+    }
     headEl.innerHTML = '<tr><th class="corner">Attainment Band</th>' +
       groups.map(function(g) {
         return '<th><span class="dot" style="background:' + g.color + '"></span>' + esc(g.label) + '</th>';
@@ -352,72 +307,27 @@ const DATA={"periods":{"q1":{"reps":[{"name":"Adian-Scott Chew","rank":1,"role":
     matrix.rows.forEach(function(row) {
       body += '<tr><td class="label">' + esc(row.band.label) + '</td>';
       groups.forEach(function(g) {
-        const selected = selection && selection.source === source && selection.groupId === g.id && selection.bandId === row.band.id;
+        const selected = selection && selection.groupId === g.id && selection.bandId === row.band.id;
         body += cellHtml(row.cells[g.id], g.id, row.band.id, selected);
       });
       body += '</tr>';
     });
     body += '<tr class="total"><td class="label">Total</td>';
     groups.forEach(function(g) {
-      const selected = selection && selection.source === source && selection.groupId === g.id && selection.bandId === 'total';
+      const selected = selection && selection.groupId === g.id && selection.bandId === 'total';
       body += cellHtml({ n: matrix.totals[g.id] || 0, pct: 1 }, g.id, 'total', selected);
     });
     body += '</tr>';
     bodyEl.innerHTML = body;
-    bindCells(bodyEl, source, groups);
+    bindCells(bodyEl, groups);
   }
 
-  function renderQoq() {
-    const groups = qoqGroups();
-    const ytdN = groups[0].reps.length;
-    const q1N = groups[1].reps.length;
-    const q2N = groups[2].reps.length;
-    renderHeat(
-      document.getElementById('qoq-head'),
-      document.getElementById('qoq-body'),
-      groups,
-      'qoq',
-      document.getElementById('qoq-headline'),
-      'YTD ' + ytdN + ' BDRs · Q1 ' + q1N + ' · Q2 ' + q2N
-    );
-  }
-  function renderTenure() {
-    document.querySelectorAll('#tenure-period-toggle .toggle-btn').forEach(function(btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-tenure-period') === tenureBandPeriod);
-    });
-    const meta = BAND_PERIODS[tenureBandPeriod] || BAND_PERIODS.q2;
-    const groups = tenureGroups(tenureBandPeriod);
-    const allN = groups[0].reps.length;
-    const tenuredN = groups[1].reps.length;
-    const rookieN = groups[2].reps.length;
-    renderHeat(
-      document.getElementById('tenure-head'),
-      document.getElementById('tenure-body'),
-      groups,
-      'tenure',
-      document.getElementById('tenure-headline'),
-      meta.label + ' — ' + allN + ' BDRs · ' + tenuredN + ' tenured · ' + rookieN + ' rookies'
-    );
-  }
-
-  document.getElementById('tenure-period-toggle').addEventListener('click', function(e) {
-    const btn = e.target.closest('[data-tenure-period]');
-    if (!btn) return;
-    const next = btn.getAttribute('data-tenure-period');
-    if (!next || next === tenureBandPeriod) return;
-    tenureBandPeriod = next;
-    if (selection && selection.source === 'tenure') clearSelection();
-    renderTenure();
-    if (selection) renderDetail();
-  });
   document.getElementById('detail-close').addEventListener('click', function() {
     clearSelection();
     renderQoq();
-    renderTenure();
   });
 
   renderQoq();
-  renderTenure();
 })();
 </script>
 </body>
